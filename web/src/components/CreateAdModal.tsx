@@ -7,6 +7,8 @@ import { Input } from "./Form/Input";
 
 import * as Checkbox from "@radix-ui/react-checkbox";
 
+import axios from "axios";
+
 interface Game {
   id: string;
   title: string;
@@ -33,18 +35,37 @@ export function CreateAdModal() {
   ]);
 
   useEffect(() => {
-    fetch("http://localhost:3333/games/")
-      .then((response) => response.json())
-      .then((data) => setGames(data));
+    axios("http://localhost:3333/games/").then((response) => {
+      setGames(response.data);
+    });
   }, []);
 
   async function handleCreateAd(event: FormEvent) {
     event.preventDefault();
 
     const formDat = new FormData(event.target as HTMLFormElement);
-
     const data = Object.fromEntries(formDat);
-    console.log(useVoiceChannel);
+
+    if (!data.name) {
+      return;
+    }
+
+    try {
+      await axios.post(`http://localhost:3333/games/${data.game}/ads`, {
+        name: data.name,
+        yearsPlaying: Number(data.yearsPlaying),
+        discord: data.discord,
+        weekDays: weekdays.map(Number),
+        hourStart: data.hourStart,
+        hourEnd: data.hourEnd,
+        useVoiceChannel: useVoiceChannel,
+      });
+
+      alert("anúncio criado com sucesso!");
+    } catch (err) {
+      console.log(err);
+      alert("erro ao criar anúncio");
+    }
   }
 
   return (
